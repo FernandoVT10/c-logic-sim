@@ -43,6 +43,9 @@ extern Simulation simulation;
 
 void sim_init(void);
 void sim_add_chip(SimChip *chip);
+// removes chip and its connections to other chips
+// NOTE: it doesn't free chip
+void sim_remove_chip(SimChip *chip);
 
 // CHIP
 SimChip *sim_chip_new(SimChipType type);
@@ -54,5 +57,7 @@ bool sim_chip_toggle_output_pin(SimChip *chip, size_t index);
 
 // PIN
 void sim_pin_add_connection(SimPin *src, SimPin *target);
+// removes "target" connection from "src"
+void sim_pin_remove_connection(SimPin *src, SimPin *target);
 
 #endif // SIMULATION_H

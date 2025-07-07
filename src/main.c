@@ -46,5 +46,3 @@ int main() {
 
     return 0;
 }
-
-// TODO: prefix all functions related to the simulation with "sim". For example: "chip_new" to "sim_chip_new"

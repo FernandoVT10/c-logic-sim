@@ -55,6 +55,21 @@ void sim_add_chip(SimChip *chip) {
     set_add(simulation.chips, chip);
 }
 
+void sim_remove_chip(SimChip *chip) {
+    for(size_t i = 0; i < chip->outputs.count; i++) {
+        SimPin pin = chip->outputs.items[i];
+
+        // set all pins connected to the output pin to low
+        SetItem *connectedPinItem = pin.connectedPins->head;
+        while(connectedPinItem != NULL) {
+            update_pin_state(connectedPinItem->data, PIN_LOW);
+            connectedPinItem = connectedPinItem->next;
+        }
+    }
+    // TODO: chip->inputs
+    set_delete(simulation.chips, chip);
+}
+
 SimChip *sim_chip_new(SimChipType type) {
     SimChip *chip = alloc(sizeof(SimChip));
     chip->type = type;
@@ -100,4 +115,9 @@ void sim_pin_add_connection(SimPin *src, SimPin *target) {
 
     update_pin_state(target, src->state);
     set_add(src->connectedPins, target);
+}
+
+void sim_pin_remove_connection(SimPin *src, SimPin *target) {
+    update_pin_state(target, PIN_LOW);
+    set_delete(src->connectedPins, target);
 }
