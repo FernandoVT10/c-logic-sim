@@ -68,3 +68,14 @@ void set_delete(Set *set, void *data) {
         pos++;
     }
 }
+
+void set_clear_and_destroy(Set *set) {
+    SetItem *item = set->head;
+    while(item != NULL) {
+        SetItem *currentItem = item;
+        item = item->next;
+        free(currentItem);
+    }
+
+    free(set);
+}

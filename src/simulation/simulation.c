@@ -55,6 +55,10 @@ void sim_add_chip(SimChip *chip) {
     set_add(simulation.chips, chip);
 }
 
+void sim_remove_chip(SimChip *chip) {
+    set_delete(simulation.chips, chip);
+}
+
 SimChip *sim_chip_new(SimChipType type) {
     SimChip *chip = alloc(sizeof(SimChip));
     chip->type = type;
@@ -73,6 +77,21 @@ SimChip *sim_chip_new(SimChipType type) {
     }
 
     return chip;
+}
+
+static void free_pin_array(SimPinArray *pinArr) {
+    for(size_t i = 0; i < pinArr->count; i++) {
+        SimPin pin = pinArr->items[i];
+        set_clear_and_destroy(pin.connectedPins);
+    }
+
+    da_free(pinArr);
+}
+
+void sim_chip_free(SimChip *chip) {
+    free_pin_array(&chip->inputs);
+    free_pin_array(&chip->outputs);
+    free(chip);
 }
 
 SimPin *sim_chip_get_input_pin(SimChip *chip, size_t index) {
@@ -100,4 +119,9 @@ void sim_pin_add_connection(SimPin *src, SimPin *target) {
 
     update_pin_state(target, src->state);
     set_add(src->connectedPins, target);
+}
+
+void sim_pin_remove_connection(SimPin *src, SimPin *target) {
+    update_pin_state(target, PIN_LOW);
+    set_delete(src->connectedPins, target);
 }

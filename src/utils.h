@@ -43,6 +43,7 @@ typedef struct {
 Set *set_new();
 void set_add(Set *set, void *data);
 void set_delete(Set *set, void *data);
+void set_clear_and_destroy(Set *set);
 
 void *alloc(size_t bytes);
 

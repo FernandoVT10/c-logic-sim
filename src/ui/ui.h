@@ -58,6 +58,7 @@ struct UIChip {
     struct {
         // these colliders are calculated relative to the chip position
         UICollider draggable;
+        UICollider deletable;
     } colliders;
 };
 
@@ -74,6 +75,7 @@ typedef enum {
     UI_STATE_NONE,
     UI_STATE_DRAGGING,
     UI_STATE_WIRING,
+    UI_STATE_DELETING,
 } UIState;
 
 typedef struct {
@@ -97,8 +99,10 @@ void ui_init();
 void ui_update();
 void ui_add_chip(UIChip *chip);
 void ui_drag_chip(UIChip *chip);
+void ui_delete_chip(UIChip *chip);
 
 UIChip *ui_chip_new(UIChipType type, Vector2 initialPos);
+void ui_chip_free(UIChip *chip);
 
 // returns the actual pin pos in the world (adding its "pos" and its parent "pos")
 Vector2 ui_get_pin_pos(UIPin *pin);
@@ -106,5 +110,7 @@ bool ui_is_pin_high(UIPin *pin);
 
 UIWire *ui_wire_new();
 void ui_wire_free(UIWire *wire);
+// removes and frees a wire
+void ui_wire_delete(UIWire *wire);
 
 #endif // UI_H

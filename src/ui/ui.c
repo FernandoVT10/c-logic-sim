@@ -97,14 +97,24 @@ static void update_chip(UIChip *chip) {
         default: break;
     }
 
-    // Dragging
     Vector2 mousePos = GetMousePosition();
 
+    // Dragging
     Rectangle draggableCollider = get_rec_from_collider_and_vec(chip->colliders.draggable, chip->pos);
     if(CheckCollisionPointRec(mousePos, draggableCollider)
         && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
     ) {
         ui_drag_chip(chip);
+    }
+
+    // Deleting
+    Rectangle deletableCollider = get_rec_from_collider_and_vec(chip->colliders.deletable, chip->pos);
+    if(CheckCollisionPointRec(mousePos, deletableCollider)
+        && IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)
+        && ui.state == UI_STATE_NONE
+    ) {
+        ui.chipToDelete = chip;
+        ui.state = UI_STATE_DELETING;
     }
 }
 
@@ -169,15 +179,39 @@ static void handle_dragging() {
     }
 }
 
-UI ui = {0};
+static void handle_deleting() {
+    if(ui.state != UI_STATE_DELETING) return;
+    if(ui.chipToDelete == NULL) {
+        TraceLog(LOG_ERROR, "Deleting a NULL chip?");
+        return;
+    }
 
-void ui_init() {
-    ui.chips = set_new();
-    ui.wires = set_new();
+    ui_delete_chip(ui.chipToDelete);
+    ui.chipToDelete = NULL;
+    ui.state = UI_STATE_NONE;
 }
 
-void ui_update() {
+static void update_wires() {
+    // wire deletion
+    SetItem *wireItem = ui.wires->head;
+    Vector2 mousePos = GetMousePosition();
+    while(wireItem != NULL) {
+        UIWire *wire = wireItem->data;
+        // here we reassing wireItem right away since the wireItem can be deleted below
+        wireItem = wireItem->next;
+
+        Vector2 startPos = ui_get_pin_pos(wire->src.pin);
+        Vector2 endPos = ui_get_pin_pos(wire->target.pin);
+        if(CheckCollisionPointLine(mousePos, startPos, endPos, 5)
+            && IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            ui_wire_delete(wire);
+            continue;
+        }
+    }
+
     draw_wires(ui.wires);
+
+    // draw unfinised wire
     if(ui.state == UI_STATE_WIRING) {
         draw_unfinished_wire(ui.currentWire);
 
@@ -187,8 +221,37 @@ void ui_update() {
             ui_wire_free(ui.currentWire);
         }
     }
+}
+
+// deletes all the wires that contains any pin in the array in either the src or target fields
+static void delete_wires_from_pin_array(UIPinArray pinArr) {
+    for(size_t i = 0; i < pinArr.count; i++) {
+        UIPin *pin = &pinArr.items[i];
+
+        SetItem *wireItem = ui.wires->head;
+        while(wireItem != NULL) {
+            UIWire *wire = wireItem->data;
+            // wireItem will be freed when ui_wire_delete is called
+            wireItem = wireItem->next;
+            if(wire->src.pin == pin || wire->target.pin == pin) {
+                ui_wire_delete(wire);
+            }
+        }
+    }
+}
+
+UI ui = {0};
+
+void ui_init() {
+    ui.chips = set_new();
+    ui.wires = set_new();
+}
+
+void ui_update() {
+    update_wires();
     update_chips();
     handle_dragging();
+    handle_deleting();
 
     if(IsKeyPressed(KEY_D)) {
         TraceLog(LOG_INFO, "Wires Count: %lu", ui.wires->count);
@@ -208,6 +271,14 @@ void ui_drag_chip(UIChip *chip) {
     ui.draggingChip = chip;
 }
 
+void ui_delete_chip(UIChip *chip) {
+    delete_wires_from_pin_array(chip->inputs);
+    delete_wires_from_pin_array(chip->outputs);
+    sim_remove_chip(chip->simChip);
+    set_delete(ui.chips, chip);
+    ui_chip_free(chip);
+}
+
 UIChip *ui_chip_new(UIChipType type, Vector2 initialPos) {
     UIChip *chip = alloc(sizeof(UIChip));
     chip->type = type;
@@ -219,9 +290,8 @@ UIChip *ui_chip_new(UIChipType type, Vector2 initialPos) {
 
             chip->colliders.draggable.width = UI_INPUT_DRAGGABLE_WIDTH;
             chip->colliders.draggable.height = UI_INPUT_HEIGHT;
-
-            // chip->colliders.delete.width = INPUT_DRAGGABLE_WIDTH + INPUT_DRAGGABLE_MARGIN + INPUT_WIDTH;
-            // chip->colliders.delete.height = INPUT_HEIGHT;
+            chip->colliders.deletable.width = UI_INPUT_DRAGGABLE_WIDTH + UI_INPUT_DRAGGABLE_MARGIN + UI_INPUT_WIDTH;
+            chip->colliders.deletable.height = UI_INPUT_HEIGHT;
 
             Vector2 pos = {
                 .x = UI_INPUT_DRAGGABLE_WIDTH + UI_INPUT_DRAGGABLE_MARGIN + UI_INPUT_WIDTH + UI_INPUT_LINE_WIDTH + UI_PIN_RADIUS,
@@ -235,8 +305,8 @@ UIChip *ui_chip_new(UIChipType type, Vector2 initialPos) {
             chip->colliders.draggable.width = UI_NAND_WIDTH;
             chip->colliders.draggable.height = UI_NAND_HEIGHT;
 
-            // chip->colliders.delete.width = NAND_WIDTH;
-            // chip->colliders.delete.height = NAND_HEIGHT;
+            chip->colliders.deletable.width = UI_NAND_WIDTH;
+            chip->colliders.deletable.height = UI_NAND_HEIGHT;
 
             add_pin_to_chip(chip, true, (Vector2){0, UI_PIN_RADIUS});
             add_pin_to_chip(chip, true, (Vector2){0, UI_NAND_HEIGHT - UI_PIN_RADIUS});
@@ -248,6 +318,13 @@ UIChip *ui_chip_new(UIChipType type, Vector2 initialPos) {
     sim_add_chip(chip->simChip);
 
     return chip;
+}
+
+void ui_chip_free(UIChip *chip) {
+    da_free(&chip->inputs);
+    da_free(&chip->outputs);
+    sim_chip_free(chip->simChip);
+    free(chip);
 }
 
 Vector2 ui_get_pin_pos(UIPin *pin) {
@@ -264,4 +341,13 @@ UIWire *ui_wire_new() {
 
 void ui_wire_free(UIWire *wire) {
     free(wire);
+}
+
+void ui_wire_delete(UIWire *wire) {
+    set_delete(ui.wires, wire);
+    sim_pin_remove_connection(
+        wire->src.pin->simPin,
+        wire->target.pin->simPin
+    );
+    ui_wire_free(wire);
 }
