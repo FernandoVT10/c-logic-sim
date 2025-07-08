@@ -19,6 +19,9 @@
 
 #define UI_WIRE_THICKNESS 5
 
+#define UI_OUTPUT_WIDTH 30
+#define UI_OUTPUT_HEIGHT 30
+
 typedef struct UIChip UIChip;
 
 typedef struct {
@@ -39,6 +42,7 @@ typedef struct {
 typedef enum {
     UI_CHIP_INPUT,
     UI_CHIP_NAND,
+    UI_CHIP_OUTPUT,
 } UIChipType;
 
 typedef struct {

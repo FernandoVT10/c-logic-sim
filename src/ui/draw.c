@@ -11,6 +11,10 @@
 #define UI_WIRE_COLOR CLITERAL(Color){ 7, 86, 95, 255 }
 #define UI_HIGH_WIRE_COLOR CLITERAL(Color){ 15, 182, 214, 255 }
 
+#define UI_OUTPUT_COLOR CLITERAL(Color){ 58, 62, 74, 255 }
+#define UI_OUTPUT_DEACTIVE_COLOR CLITERAL(Color){ 7, 86, 95, 255 }
+#define UI_OUTPUT_ACTIVE_COLOR CLITERAL(Color){ 15, 182, 214, 255 }
+
 static void draw_nand(UIChip *nand) {
     DrawRectangle(nand->pos.x, nand->pos.y, UI_NAND_WIDTH, UI_NAND_HEIGHT, UI_NAND_BG_COLOR);
 
@@ -89,6 +93,32 @@ static void draw_input(UIChip *input) {
     DrawLineEx(lineStart, lineEnd, UI_INPUT_LINE_THICKNESS, UI_INPUT_COLOR);
 }
 
+static void draw_output(UIChip *output) {
+    SimPin *pin = sim_chip_get_input_pin(output->simChip, 0);
+    if(pin == NULL) {
+        panic("Pin is NULL");
+    }
+    bool on = pin->state == PIN_HIGH;
+
+    // DrawRectangle(output->pos.x, output->pos.y, UI_OUTPUT_WIDTH, UI_OUTPUT_HEIGHT, UI_INPUT_COLOR);
+    Rectangle rec = {
+        .x = output->pos.x,
+        .y = output->pos.y,
+        .width = UI_OUTPUT_WIDTH,
+        .height = UI_OUTPUT_HEIGHT,
+    };
+    DrawRectangleLinesEx(rec, 5, UI_OUTPUT_COLOR);
+
+    Color color = on ? UI_OUTPUT_ACTIVE_COLOR : UI_OUTPUT_DEACTIVE_COLOR;
+    int innerWidth = 20;
+    int innerHeight = 20;
+    DrawRectangle(
+        output->pos.x + UI_OUTPUT_WIDTH / 2 - innerWidth / 2,
+        output->pos.y + UI_OUTPUT_HEIGHT / 2 - innerHeight / 2,
+        innerWidth, innerHeight, color
+    );
+}
+
 void draw_chip(UIChip *chip) {
     draw_pin_array(chip->inputs);
     draw_pin_array(chip->outputs);
@@ -99,6 +129,9 @@ void draw_chip(UIChip *chip) {
             break;
         case UI_CHIP_INPUT:
             draw_input(chip);
+            break;
+        case UI_CHIP_OUTPUT:
+            draw_output(chip);
             break;
     }
 }

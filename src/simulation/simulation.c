@@ -15,7 +15,9 @@ static void update_chip_state(SimChip *chip) {
         case SIM_CHIP_NAND:
             SimPin *output = &chip->outputs.items[0];
             SimPinState state = !(chip->inputs.items[0].state & chip->inputs.items[1].state);
-            update_pin_state(output, state);
+            if(state != output->state) {
+                update_pin_state(output, state);
+            }
             break;
         default: break;
     }
@@ -73,6 +75,9 @@ SimChip *sim_chip_new(SimChipType type) {
             break;
         case SIM_CHIP_INPUT:
             chip_add_pin(&chip->outputs, chip, false);
+            break;
+        case SIM_CHIP_OUTPUT:
+            chip_add_pin(&chip->inputs, chip, true);
             break;
     }
 

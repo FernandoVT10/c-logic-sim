@@ -27,6 +27,7 @@ typedef struct {
 typedef enum {
     SIM_CHIP_NAND,
     SIM_CHIP_INPUT,
+    SIM_CHIP_OUTPUT,
 } SimChipType;
 
 struct SimChip {

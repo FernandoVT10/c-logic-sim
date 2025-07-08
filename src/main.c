@@ -37,6 +37,10 @@ int main() {
             ui_add_chip(ui_chip_new(UI_CHIP_INPUT, GetMousePosition()));
         }
 
+        if(IsKeyPressed(KEY_O)) {
+            ui_add_chip(ui_chip_new(UI_CHIP_OUTPUT, GetMousePosition()));
+        }
+
         ui_update();
 
         EndDrawing();

@@ -313,6 +313,18 @@ UIChip *ui_chip_new(UIChipType type, Vector2 initialPos) {
             add_pin_to_chip(chip, false, (Vector2){UI_NAND_WIDTH, UI_NAND_HEIGHT/2});
 
             break;
+        case UI_CHIP_OUTPUT:
+            chip->simChip = sim_chip_new(SIM_CHIP_OUTPUT);
+
+            chip->colliders.draggable.width = UI_OUTPUT_WIDTH;
+            chip->colliders.draggable.height = UI_OUTPUT_HEIGHT;
+
+            chip->colliders.deletable.width = UI_OUTPUT_WIDTH;
+            chip->colliders.deletable.height = UI_OUTPUT_HEIGHT;
+
+            add_pin_to_chip(chip, true, (Vector2){0, UI_OUTPUT_HEIGHT / 2});
+
+            break;
     }
 
     sim_add_chip(chip->simChip);

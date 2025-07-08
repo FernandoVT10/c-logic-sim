@@ -35,6 +35,9 @@ void simulation_print_debug(Simulation simulation) {
             case SIM_CHIP_NAND:
                 chipName = "NAND";
                 break;
+            case SIM_CHIP_OUTPUT:
+                chipName = "OUTPUT";
+                break;
         }
 
         printf(ASCII_BOLD_BLUE"%s"ASCII_RESET"\n", chipName);
