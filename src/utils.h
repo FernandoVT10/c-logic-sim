@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #define DA_INIT_CAP 16
 
@@ -42,7 +43,7 @@ typedef struct {
 
 Set *set_new();
 void set_add(Set *set, void *data);
-void set_delete(Set *set, void *data);
+bool set_delete(Set *set, void *data);
 void set_clear_and_destroy(Set *set);
 
 void *alloc(size_t bytes);

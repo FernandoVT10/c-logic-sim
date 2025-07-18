@@ -3,6 +3,6 @@
 
 #include "simulation.h"
 
-void simulation_print_debug(Simulation simulation);
+void sim_debug_print(Simulation sim);
 
 #endif // SIMULATION_DEBUG_H

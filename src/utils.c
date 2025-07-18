@@ -34,7 +34,7 @@ void set_add(Set *set, void *data) {
     set->count++;
 }
 
-void set_delete(Set *set, void *data) {
+bool set_delete(Set *set, void *data) {
     SetItem *item = set->head;
     SetItem *prevItem = NULL;
 
@@ -61,12 +61,14 @@ void set_delete(Set *set, void *data) {
             }
             free(item);
             set->count--;
-            break;
+            return true;
         }
         prevItem = item;
         item = item->next;
         pos++;
     }
+
+    return false;
 }
 
 void set_clear_and_destroy(Set *set) {

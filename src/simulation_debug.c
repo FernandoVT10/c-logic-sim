@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "simulation_debug.h"
 
 #define ASCII_BOLD_GREEN "\e[1;32m"
 #define ASCII_BOLD_RED "\e[1;31m"
@@ -7,7 +7,7 @@
 #define ASCII_YELLOW "\e[0;33m"
 #define ASCII_RESET "\e[0m"
 
-static void print_debug_pin_array(SimPinArray pinArr, bool isInput) {
+static void print_pin_array(SimPinArray pinArr, bool isInput) {
     if(pinArr.count == 0) return;
 
     const char *type = isInput ? "Input" : "Output";
@@ -21,10 +21,10 @@ static void print_debug_pin_array(SimPinArray pinArr, bool isInput) {
     }
 }
 
-void simulation_print_debug(Simulation simulation) {
-    if(simulation.chips->count == 0) return;
+void sim_debug_print(Simulation sim) {
+    if(sim.chips->count == 0) return;
     printf("\n");
-    SetItem *chipItem = simulation.chips->head;
+    SetItem *chipItem = sim.chips->head;
     while(chipItem != NULL) {
         SimChip *chip = chipItem->data;
         char *chipName;
@@ -41,8 +41,8 @@ void simulation_print_debug(Simulation simulation) {
         }
 
         printf(ASCII_BOLD_BLUE"%s"ASCII_RESET"\n", chipName);
-        print_debug_pin_array(chip->inputs, true);
-        print_debug_pin_array(chip->outputs, false);
+        print_pin_array(chip->inputs, true);
+        print_pin_array(chip->outputs, false);
 
         chipItem = chipItem->next;
     }

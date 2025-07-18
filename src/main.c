@@ -2,8 +2,8 @@
 
 #define DEBUG 1
 
-#include "simulation/simulation.h"
-#include "simulation/debug.h"
+#include "simulation.h"
+#include "simulation_debug.h"
 #include "ui/ui.h"
 #include "raylib.h"
 
@@ -22,7 +22,7 @@ int main() {
 
 #ifdef DEBUG
         if(IsKeyPressed(KEY_D) && IsKeyDown(KEY_LEFT_CONTROL)) {
-            simulation_print_debug(simulation);
+            sim_debug_print(simulation);
         } else if(IsKeyPressed(KEY_D)) {
             TraceLog(LOG_INFO, "Simulation chips count: %lu", simulation.chips->count);
             TraceLog(LOG_INFO, "UI chips count: %lu", ui.chips->count);
