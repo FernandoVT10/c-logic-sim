@@ -4,7 +4,8 @@
 
 #include "simulation.h"
 #include "simulation_debug.h"
-#include "ui/ui.h"
+#include "gui/gui.h"
+#include "gui/gui_chip.h"
 #include "raylib.h"
 
 #define BG_COLOR CLITERAL(Color){ 16, 14, 23, 255 }
@@ -14,7 +15,7 @@ int main() {
     SetTargetFPS(60);
 
     sim_init();
-    ui_init();
+    gui_init();
 
     while(!WindowShouldClose()) {
         BeginDrawing();
@@ -25,23 +26,23 @@ int main() {
             sim_debug_print(simulation);
         } else if(IsKeyPressed(KEY_D)) {
             TraceLog(LOG_INFO, "Simulation chips count: %lu", simulation.chips->count);
-            TraceLog(LOG_INFO, "UI chips count: %lu", ui.chips->count);
+            TraceLog(LOG_INFO, "GUI chips count: %lu", gui.chips->count);
         }
 #endif
 
         if(IsKeyPressed(KEY_N)) {
-            ui_add_chip(ui_chip_new(UI_CHIP_NAND, GetMousePosition()));
+            gui_sim_add_chip(gui_chip_new(GUI_CHIP_NAND, GetMousePosition()));
         }
 
         if(IsKeyPressed(KEY_I)) {
-            ui_add_chip(ui_chip_new(UI_CHIP_INPUT, GetMousePosition()));
+            gui_sim_add_chip(gui_chip_new(GUI_CHIP_INPUT, GetMousePosition()));
         }
 
         if(IsKeyPressed(KEY_O)) {
-            ui_add_chip(ui_chip_new(UI_CHIP_OUTPUT, GetMousePosition()));
+            gui_sim_add_chip(gui_chip_new(GUI_CHIP_OUTPUT, GetMousePosition()));
         }
 
-        ui_update();
+        gui_update();
 
         EndDrawing();
     }

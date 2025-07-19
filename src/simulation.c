@@ -140,3 +140,7 @@ bool sim_pin_remove_connection(SimPin *src, SimPin *target) {
     update_pin_state(target, PIN_LOW);
     return set_delete(src->connectedPins, target);
 }
+
+bool sim_pin_is_high(SimPin *pin) {
+    return pin->state == PIN_HIGH;
+}

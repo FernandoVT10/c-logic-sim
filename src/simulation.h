@@ -68,7 +68,14 @@ SimChip *sim_chip_new(SimChipType type);
  */
 void sim_chip_free(SimChip *chip);
 
+/*
+ * @return NULL when there's no a pin with that index
+ */
 SimPin *sim_chip_get_input_pin(SimChip *chip, size_t index);
+
+/*
+ * @return NULL when there's no a pin with that index
+ */
 SimPin *sim_chip_get_output_pin(SimChip *chip, size_t index);
 
 /*
@@ -107,5 +114,7 @@ bool sim_pin_add_connection(SimPin *src, SimPin *target);
  * @return true if pin is found and removed
  * */
 bool sim_pin_remove_connection(SimPin *src, SimPin *target);
+
+bool sim_pin_is_high(SimPin *pin);
 
 #endif // SIMULATION_H
