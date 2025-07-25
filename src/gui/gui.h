@@ -21,6 +21,11 @@ typedef struct {
     Set *wires;
     // used when we're wiring
     GUIWire *currentWire;
+
+    // used to set the cursor "icon"
+    MouseCursor cursorType;
+
+    bool isMenuOpen;
 } GUI;
 
 extern GUI gui;
@@ -31,5 +36,12 @@ extern GUI gui;
 void gui_init();
 
 void gui_update();
+
+/*
+ * Sets the mouse cursor. It can only be set once per frame.
+ *
+ * @param cursor You can see the definition inside "raylib.h"
+ */
+void gui_set_mouse_cursor(MouseCursor cursor);
 
 #endif // GUI_H
