@@ -2,6 +2,7 @@
 #include "ui.h"
 
 #define UI_MENU_BG CLITERAL(Color){ 30, 30, 46, 255 }
+#define UI_TEXT_COLOR_WHITE CLITERAL(Color){ 205, 214, 244, 255 }
 
 GUI gui = {
     .isMenuOpen = true,
@@ -11,6 +12,10 @@ void gui_init() {
     gui.chips = set_new();
     gui.wires = set_new();
     gui.cursorType = MOUSE_CURSOR_DEFAULT;
+}
+
+static void toggle_menu() {
+    gui.isMenuOpen = !gui.isMenuOpen;
 }
 
 static void draw_menu() {
@@ -23,31 +28,30 @@ static void draw_menu() {
     int menuWidth = 300;
 
     UIWindow(0, 0, GetScreenWidth(), GetScreenHeight()) {
-        // UIContainer({
-            // .width = LaySizeFixed(menuWidth),
-            // .height = LaySizeFitContent(),
-            // .bgColor = GUI_MENU_BG,
-            // .padding = LayPadding(10),
-            // .rowGap = 10,
-        // }) {
         UIContainer({
             .width = UISizeFixed(menuWidth),
             .height = UISizeFitContent(),
             .bgColor = UI_MENU_BG,
             .padding = {10, 10, 10, 10},
+            .gap = 10,
         }) {
-            // LayText("Menu", {
-            //     .color = GUI_TEXT_COLOR,
-            //     .fontSize = 26,
-            // });
+            UIText("Menu", UI_TEXT_COLOR_WHITE, 26);
 
-            if(UIButton("Save Chip", saveChipId, UISizePercent(1), UISizeFixed(buttonHeight))) {
-                TraceLog(LOG_INFO, "Save Chip clicked!");
-            }
-            //
-            if(UIButton("Add Chip", addChipId, UISizePercent(1), UISizeFixed(buttonHeight))) {
-                TraceLog(LOG_INFO, "Add Chip clicked!");
-            }
+            UIButton({
+                .text = "Save Chip",
+                .id = saveChipId,
+                .width = UISizePercent(1),
+                .height = UISizeFixed(buttonHeight),
+                .onClick = &toggle_menu,
+            });
+
+            UIButton({
+                .text = "Add Chip",
+                .id = addChipId,
+                .width = UISizePercent(1),
+                .height = UISizeFixed(buttonHeight),
+                .onClick = &toggle_menu,
+            });
         }
     }
 }
@@ -65,10 +69,14 @@ static void draw_menu_button() {
 
     UIWindow(windowX, windowY, buttonWidth, buttonHeight){
         UISize size = UISizePercent(1);
-        if(UIButton("Menu", buttonId, size, size)) {
-            gui.isMenuOpen = true;
-        }
-    };
+        UIButton({
+            .text = "Menu",
+            .id = buttonId,
+            .width = size,
+            .height = size,
+            .onClick = &toggle_menu,
+        });
+    }
 }
 
 void gui_update() {
