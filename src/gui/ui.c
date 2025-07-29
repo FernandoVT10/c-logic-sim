@@ -78,10 +78,144 @@ static float parse_size(UISize size, float containerSize, float fitSize) {
             }
 
             return size.value * containerSize;
-        case UI_SIZE_GROW: return 17;
     }
 
     panic("UNREACHABLE");
+}
+
+static void handle_container(UINode *container) {
+    UINode *node = container->children.head;
+    UIPadding padding = container->container.padding;
+
+    float containerH = padding.top;
+
+    float containerWidth = container->rect.width - padding.left - padding.right;
+    // TODO: what happens when the container is fitSize and height is -1?
+    float containerHeight = container->rect.height - padding.top - padding.bottom;
+
+    int index = 0;
+
+    while(node != NULL) {
+        if(index > 0) {
+            containerH += container->container.gap;
+        }
+
+        switch(node->type) {
+            case UI_BUTTON_NODE:
+                int textWidth = MeasureText(node->button.text, UI_BUTTON_FONT_SIZE);
+                node->rect.width = parse_size(node->button.width, containerWidth, textWidth);
+                node->rect.height = parse_size(node->button.height, containerHeight, UI_BUTTON_FONT_SIZE);
+                break;
+            case UI_CONTAINER_NODE:
+                node->rect.width = parse_size(node->container.width, containerWidth, -1);
+                node->rect.height = parse_size(node->container.height, containerHeight, -1);
+                break;
+            case UI_TEXT_NODE:
+                node->rect.width = MeasureText(node->text.text, node->text.fontSize);
+                node->rect.height = node->text.fontSize;
+                break;
+        }
+
+        containerH += node->rect.height;
+        node = node->next;
+        index++;
+    }
+
+
+    if(container->container.height.type == UI_SIZE_FIT_CONTENT) {
+        containerH += padding.bottom;
+        container->rect.height = containerH;
+    }
+
+    Vector2 pos = {
+        .x = container->rect.x + padding.left,
+        .y = container->rect.y + padding.top,
+    };
+
+    index = 0;
+    node = container->children.head;
+    while(node != NULL) {
+        if(index > 0) {
+            pos.y += container->container.gap;
+        }
+
+        if(container->container.align.x == UI_ALIGN_CENTER) {
+            node->rect.x = pos.x + container->rect.width / 2 - node->rect.width / 2;
+        } else {
+            node->rect.x = pos.x;
+        }
+
+        if(container->container.align.y == UI_ALIGN_CENTER) {
+            node->rect.y = pos.y + container->rect.height / 2 - node->rect.height / 2;
+        } else {
+            node->rect.y = pos.y;
+        }
+
+        if(node->type == UI_CONTAINER_NODE) {
+            handle_container(node);
+        }
+
+        pos.y += node->rect.height;
+
+        node = node->next;
+        index++;
+    }
+}
+
+static Vector2 get_node_fit_size(UINode *node) {
+    Vector2 res = {0};
+    switch(node->type) {
+        case UI_BUTTON_NODE:
+            int textWidth = MeasureText(node->button.text, UI_BUTTON_FONT_SIZE);
+            res.x = textWidth;
+            res.y = UI_BUTTON_FONT_SIZE;
+            break;
+        case UI_CONTAINER_NODE:
+            node->rect.width = parse_size(node->container.width, containerWidth, -1);
+            node->rect.height = parse_size(node->container.height, containerHeight, -1);
+            break;
+        case UI_TEXT_NODE:
+            res.x = MeasureText(node->text.text, node->text.fontSize);
+            res.y = node->text.fontSize;
+            break;
+    }
+    return res;
+}
+
+static void calculate_container_size(UINode *containerNode) {
+    Rectangle containerRect = containerNode->rect;
+    UIContainerNode container = containerNode->container;
+
+    float containerHeight = container->padding.top;
+
+    size_t childrentCount = containerNode->children.count;
+    if(childrentCount > 0) {
+        containerHeight += (childrentCount - 1) * container->gap;
+    }
+
+    UINode *node = containerNode->children.head;
+    while(node != NULL) {
+        Vector2 fitSize = get_node_fit_size(node);
+
+        switch(node->type) {
+            case UI_BUTTON_NODE:
+                int textWidth = MeasureText(node->button.text, UI_BUTTON_FONT_SIZE);
+                node->rect.width = parse_size(node->button.width, containerWidth, textWidth);
+                node->rect.height = parse_size(node->button.height, containerHeight, UI_BUTTON_FONT_SIZE);
+                break;
+            case UI_CONTAINER_NODE:
+                node->rect.width = parse_size(node->container.width, containerWidth, -1);
+                node->rect.height = parse_size(node->container.height, containerHeight, -1);
+                break;
+            case UI_TEXT_NODE:
+                node->rect.width = MeasureText(node->text.text, node->text.fontSize);
+                node->rect.height = node->text.fontSize;
+                break;
+        }
+
+        containerHeight += node->rect.height;
+        node = node->next;
+    }
 }
 
 static void draw_button_node(Rectangle rect, UIButtonNode button) {
@@ -108,56 +242,6 @@ static void draw_button_node(Rectangle rect, UIButtonNode button) {
     DrawText(button.text, textX, textY, UI_BUTTON_FONT_SIZE, UI_BUTTON_FONT_COLOR);
 }
 
-static void handle_container(UINode *container) {
-    UINode *node = container->children.head;
-    UIPadding padding = container->container.padding;
-
-    Vector2 pos = {
-        .x = container->rect.x + padding.left,
-        .y = container->rect.y + padding.top,
-    };
-
-    float containerWidth = container->rect.width - padding.left - padding.right;
-    // TODO: what happens when the container is fitSize and height is -1?
-    float containerHeight = container->rect.height - padding.top - padding.bottom;
-
-    int index = 0;
-
-    while(node != NULL) {
-        if(index > 0) {
-            pos.y += container->container.gap;
-        }
-
-        node->rect.x = pos.x;
-        node->rect.y = pos.y;
-
-        switch(node->type) {
-            case UI_BUTTON_NODE:
-                int textWidth = MeasureText(node->button.text, UI_BUTTON_FONT_SIZE);
-                node->rect.width = parse_size(node->button.width, containerWidth, textWidth);
-                node->rect.height = parse_size(node->button.height, containerHeight, UI_BUTTON_FONT_SIZE);
-                break;
-            case UI_CONTAINER_NODE:
-                node->rect.width = parse_size(node->container.width, containerWidth, -1);
-                node->rect.height = parse_size(node->container.height, containerHeight, -1);
-                handle_container(node);
-                break;
-            case UI_TEXT_NODE:
-                node->rect.width = MeasureText(node->text.text, node->text.fontSize);
-                node->rect.height = node->text.fontSize;
-                break;
-        }
-
-        pos.y += node->rect.height;
-        node = node->next;
-        index++;
-    }
-
-    if(container->container.height.type == UI_SIZE_FIT_CONTENT) {
-        container->rect.height = pos.y - container->rect.y + padding.bottom;
-    }
-}
-
 static void draw_node_list(UINodeList nodes) {
     UINode *node = nodes.head;
     while(node != NULL) {
@@ -182,7 +266,8 @@ static void draw_node_list(UINodeList nodes) {
 }
 
 void ui_window_close(void) {
-    handle_container(ui.tree);
+    calculate_container_size(ui.tree);
+    calculate_container_position(ui.tree);
     draw_node_list(ui.tree->children);
 }
 
@@ -224,87 +309,6 @@ void ui_button(UIButtonOpts opts) {
     UINode *container = get_last_container();
     add_child_to_node(container, node);
 }
-//
-// static UIContainer *get_last_container() {
-//     if(ui.containers.count == 0) {
-//         panic("There's no containers");
-//     }
-//
-//     return &ui.containers.items[ui.containers.count - 1];
-// }
-//
-// static Rectangle layout_next(UISize width, UISize height, Vector2 fitSize) {
-//     UIContainer *container = get_last_container();
-//
-//     int padWidth = container->padding.left + container->padding.right;
-//
-//     Rectangle rec = {
-//         .x = ui.layout.x + container->padding.left,
-//         .y = ui.layout.y + container->padding.top,
-//         .width = parse_size(width, container->width, fitSize.x) - padWidth,
-//         .height = parse_size(height, container->height, fitSize.y),
-//     };
-//
-//     return (ui.last_rec = rec);
-// }
-//
-// static void update_layout(Rectangle rec) {
-//     // TODO: it only works with columns not with rows
-//     ui.layout.y = rec.x + rec.height;
-// }
-//
-// // creates, adds, and returns an empty cmd to the stack
-// static UICmd *create_cmd() {
-//     da_append(&ui.cmds, ((UICmd){}));
-//     return &ui.cmds.items[ui.cmds.count - 1];
-// }
-//
-// bool ui_button(const char *text, int id, UISize width, UISize height) {
-//     int textWidth = MeasureText(text, UI_BUTTON_FONT_SIZE);
-//
-//     Vector2 fitSize = {textWidth, textWidth};
-//     Rectangle rec = layout_next(width, height, fitSize);
-//
-//     bool res = false;
-//
-//     update_control(id, rec);
-//
-//     bool hovered = is_hovered(id);
-//
-//     if(hovered) {
-//         gui_set_mouse_cursor(MOUSE_CURSOR_POINTING_HAND);
-//
-//         if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && is_focused(id)) {
-//             res = true;
-//         }
-//     }
-//
-//     {
-//         UICmd *cmd = create_cmd();
-//         cmd->type = UI_CMD_RECT;
-//         cmd->rect.rect = rec;
-//         cmd->rect.color = hovered ? UI_BUTTON_HOVER_BG : UI_BUTTON_BG;
-//     }
-//
-//     {
-//         int textX = rec.x + rec.width / 2 - textWidth / 2;
-//         int textY = rec.y + rec.height / 2 - UI_BUTTON_FONT_SIZE / 2;
-//
-//         UICmd *cmd = create_cmd();
-//         cmd->type = UI_CMD_TEXT;
-//         cmd->text = (UICmdText) {
-//             // TODO: bad
-//             .text = strdup(text),
-//             .pos = (Vector2){textX, textY},
-//             .color = UI_BUTTON_FONT_COLOR,
-//             .fontSize = UI_BUTTON_FONT_SIZE,
-//         };
-//     }
-//
-//     update_layout(rec);
-//
-//     return res;
-// }
 
 void ui_container(UIContainerOpts opts) {
     UINode *node = create_node();
@@ -315,6 +319,7 @@ void ui_container(UIContainerOpts opts) {
         .bgColor = opts.bgColor,
         .padding = opts.padding,
         .gap = opts.gap,
+        .align = opts.align,
     };
 
     UINode *container = get_last_container();
