@@ -282,6 +282,8 @@ static void calculate_container_size(UINode *container) {
         container->rect.height = fitHeight;
     }
 
+    container->container.fitHeight = fitHeight;
+
     // TODO: for default this only works with the layout direction of top-bottom
     // it will not work with left-right direction
 }
@@ -296,6 +298,10 @@ static void calculate_container_position(UINode *container) {
         .y = container->rect.y + padding.top,
     };
 
+    if(container->container.align.y == UI_ALIGN_CENTER) {
+        pos.y = container->rect.y + container->rect.height / 2 - container->container.fitHeight / 2;
+    }
+
     int index = 0;
     UINode *node = container->children.head;
     while(node != NULL) {
@@ -303,16 +309,12 @@ static void calculate_container_position(UINode *container) {
             pos.y += container->container.gap;
         }
 
+        node->rect.y = pos.y;
+
         if(container->container.align.x == UI_ALIGN_CENTER) {
             node->rect.x = pos.x + container->rect.width / 2 - node->rect.width / 2;
         } else {
             node->rect.x = pos.x;
-        }
-
-        if(container->container.align.y == UI_ALIGN_CENTER) {
-            node->rect.y = pos.y + container->rect.height / 2 - node->rect.height / 2;
-        } else {
-            node->rect.y = pos.y;
         }
 
         if(node->type == UI_CONTAINER_NODE) {

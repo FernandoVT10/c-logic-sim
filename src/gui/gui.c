@@ -35,7 +35,6 @@ static void draw_menu() {
                .x = UI_ALIGN_CENTER,
                .y = UI_ALIGN_CENTER,
            },
-           .bgColor = RED,
         }) {
             UIContainer({
                 .width = UISizeFixed(menuWidth),
@@ -62,6 +61,8 @@ static void draw_menu() {
                     .onClick = &toggle_menu,
                 });
             }
+
+            UIText("MENU", UI_TEXT_COLOR_WHITE, 20);
         }
     }
 }

@@ -101,6 +101,7 @@ typedef struct {
     UIPadding padding;
     float gap;
     UIAlignment align;
+    float fitHeight;
 } UIContainerNode;
 
 typedef struct { char *text; Color color; int fontSize; } UITextNode;
