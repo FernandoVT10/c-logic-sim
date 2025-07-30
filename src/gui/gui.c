@@ -29,29 +29,39 @@ static void draw_menu() {
 
     UIWindow(0, 0, GetScreenWidth(), GetScreenHeight()) {
         UIContainer({
-            .width = UISizeFixed(menuWidth),
-            .height = UISizeFitContent(),
-            .bgColor = UI_MENU_BG,
-            .padding = {10, 10, 10, 10},
-            .gap = 10,
+           .width = UISizePercent(1),
+           .height = UISizePercent(1),
+           .align = {
+               .x = UI_ALIGN_CENTER,
+               .y = UI_ALIGN_CENTER,
+           },
+           .bgColor = RED,
         }) {
-            UIText("Menu", UI_TEXT_COLOR_WHITE, 26);
+            UIContainer({
+                .width = UISizeFixed(menuWidth),
+                .height = UISizeFitContent(),
+                .bgColor = UI_MENU_BG,
+                .padding = {10, 10, 10, 10},
+                .gap = 10,
+            }) {
+                UIText("Menu", UI_TEXT_COLOR_WHITE, 26);
 
-            UIButton({
-                .text = "Save Chip",
-                .id = saveChipId,
-                .width = UISizePercent(1),
-                .height = UISizeFixed(buttonHeight),
-                .onClick = &toggle_menu,
-            });
+                UIButton({
+                    .text = "Save Chip",
+                    .id = saveChipId,
+                    .width = UISizePercent(1),
+                    .height = UISizeFixed(buttonHeight),
+                    .onClick = &toggle_menu,
+                });
 
-            UIButton({
-                .text = "Add Chip",
-                .id = addChipId,
-                .width = UISizePercent(1),
-                .height = UISizeFixed(buttonHeight),
-                .onClick = &toggle_menu,
-            });
+                UIButton({
+                    .text = "Add Chip",
+                    .id = addChipId,
+                    .width = UISizePercent(1),
+                    .height = UISizeFixed(buttonHeight),
+                    .onClick = &toggle_menu,
+                });
+            }
         }
     }
 }

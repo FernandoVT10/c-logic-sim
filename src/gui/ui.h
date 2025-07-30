@@ -27,13 +27,11 @@ static inline void layout_suppress_warning(void) {(void)LAYCONTAINER_DEFINITION;
 #define UISizeFixed(n) (UISize){.type = UI_SIZE_FIXED, .value = (n)}
 #define UISizeFitContent() (UISize){.type = UI_SIZE_FIT_CONTENT}
 #define UISizePercent(n) (UISize){.type = UI_SIZE_PERCENT, .value = (n)}
-#define UISizeGrow() (UISize){.type = UI_SIZE_GROW}
 
 typedef enum {
     UI_SIZE_FIXED,
     UI_SIZE_FIT_CONTENT,
     UI_SIZE_PERCENT,
-    UI_SIZE_GROW,
 } UISizeType;
 
 typedef struct {
@@ -49,6 +47,17 @@ typedef struct {
     int left;
 } UIPadding;
 
+typedef enum {
+    UI_ALIGN_LEFT,
+    UI_ALIGN_CENTER,
+    UI_ALIGN_RIGHT,
+} UIAlignmentType;
+
+typedef struct {
+    UIAlignmentType x;
+    UIAlignmentType y;
+} UIAlignment;
+
 typedef struct {
     UISize width;
     UISize height;
@@ -56,6 +65,7 @@ typedef struct {
     UIPadding padding;
     // gap between columns or rows
     float gap;
+    UIAlignment align;
 } UIContainerOpts;
 
 typedef void(*UIButtonOnClick)(void);
@@ -67,14 +77,6 @@ typedef struct {
     UISize height;
     UIButtonOnClick onClick;
 } UIButtonOpts;
-
-typedef struct {
-    int x;
-    int y;
-    int width;
-    int height;
-    UIPadding padding;
-} UIContainer;
 
 typedef struct UINode UINode;
 
@@ -91,13 +93,16 @@ typedef struct {
     UISize height;
     UIButtonOnClick onClick;
 } UIButtonNode;
+
 typedef struct {
     UISize width;
     UISize height;
     Color bgColor;
     UIPadding padding;
     float gap;
+    UIAlignment align;
 } UIContainerNode;
+
 typedef struct { char *text; Color color; int fontSize; } UITextNode;
 
 typedef struct {
